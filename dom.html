@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+  <style>
+		.a {
+				display:inline-block;
+				margin: 5px;
+				width: 80px;
+				height: 80px;
+				border: 1px solid;
+				animation-name: bounce;
+				animation-duration: .1s;
+				animation-iteration-count: infinite;
+				animation-direction: alternate-reverse;
+		}
+
+		@keyframes bounce {
+			0% {
+				border-radius: 0;
+			}
+
+			100% {
+				border-radius: 50%;
+			}
+		}
+  </style>
+</head>
+<body>
+	<div class="b"></div>
+	<button onclick="plainDraw()">draw</button>
+	<button onclick="proDraw()">draw with time slicing</button>
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+	<script>
+		var s = '<div class="a"></div>';
+		var max = 1000000000;
+
+		function draw(i) {
+			if (i % 10000000 === 0) {
+				$('.b').append(s);
+			}
+		}
+		function plainDraw() {
+			var i = 0;
+			while(i < max) {
+				draw(i);
+				i++;
+			}
+		}
+		function proDraw() {
+			var i = 0;
+			var time = 0;
+
+			function localDraw(deadline) {
+				time += 1;
+				var remain = deadline.timeRemaining();
+				while(deadline.timeRemaining() > 0 && i < max) {
+					draw(i);
+					i++;
+				}
+				console.log({
+					time: remain,
+					counter: i,
+					drawTime: time
+				});
+
+				if ( i < max) {
+					requestIdleCallback(localDraw);
+				}
+			}
+
+			requestIdleCallback(localDraw);
+		}
+	</script>
+</body>
+</html>

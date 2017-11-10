@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+  <style>
+	  .container {
+		  border:1px solid;
+	  }
+
+	  .sub-container {
+		  display: inline-block;
+		  width: 2px;
+		  height: 2px;
+		  background: yellowgreen;
+	  }
+  </style>
+</head>
+<body>
+	<div class="b"></div>
+	<div class="c"></div>
+	<button onclick="plainDraw()">draw</button>
+	<button onclick="proDraw()">draw with time slicing</button>
+	<button onclick="batchDraw()">batch draw with time slicing</button>
+	<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.js"></script>
+	<script>
+		var max = 5000;
+		var s = '<div class="container"></div>';
+		$('.b').html(s);
+
+		function plainDraw() {
+			$('.container').html('');
+			var now = new Date();
+			var i = 0;
+			while(i < max) {
+				draw();
+				i++;
+			}
+			alert(new Date() - now);
+		}
+
+		function draw() {
+			$('.container').append('<div class="sub-container"></div>');
+		}
+
+		function proDraw() {
+			$('.container').html('');
+			var i = 0;
+			var now = new Date();
+			function inlineDraw(deadline) {
+				while(deadline.timeRemaining() > 0 && i < max) {
+					draw();
+					i++;
+				}
+
+				if (i < max) {
+					requestIdleCallback(inlineDraw);
+				} else {
+					alert(new Date() - now);
+				}
+			}
+
+			requestIdleCallback(inlineDraw);
+		}
+
+		function batchDraw() {
+			var i = 0;
+			$('.container').html('');
+			var now = new Date();
+			function inlineDraw(deadline) {
+				while(deadline.timeRemaining() > 0 && i < max / 10) {
+					var j = 0;
+					while(j < 100) {
+						$('.container').append('<div class="sub-container"></div>');
+						j++;
+					}
+					i++;
+				}
+
+				if (i < max / 100) {
+					requestIdleCallback(inlineDraw);
+				} else {
+					alert(new Date() - now);
+				}
+			}
+
+			requestIdleCallback(inlineDraw);
+		}
+	</script>
+</body>
+</html>
